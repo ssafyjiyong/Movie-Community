@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="d-flex justify-content-center">
+    <h1>🎪영화 토론의 장🎪</h1>
+  </div>
+
+  <div class="bg-white">
+  <hr />
+  {% for review in reviews %}
+    <div class="d-flex justify-content-between">
+      <div class="d-flex">
+      <h4>📌</h4><a style="text-decoration: none;" href="{% url 'community:detail' review.pk %}"><h4 class="fw-bold">{{ review.title }}</h4></a>
+      </div>
+      <div>
+        <span><span id="likecnt-{{ review.pk }}">{{ review.like_users.all|length }}</span> 명이 이 글을 좋아합니다</span>
+        <form style="display: inline-block;" id="likes-forms" data-review-id="{{ review.pk }}">
+          {% csrf_token %}
+          {% if user in review.like_users.all %}
+            <button class="btn btn-link"><i id="like-{{ review.pk }}" class="fa-solid fa-heart text-danger"></i></button>
+            {% else %}
+            <button class="btn btn-link"><i id="like-{{ review.pk }}" class="fa-solid fa-heart text-secondary"></button></i>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+
+    <p>
+      작성자 : <a href="{% url 'accounts:profile' review.user.username %}">{{ review.user }}</a>
+    </p>
+    {% comment %} <p>작성 번호: {{ review.pk }}</p> {% endcomment %}
+    <p>글 내용: {{ review.content }}</p>
+
+    <div class="d-flex justify-content-end">
+    </div>
+
+    <hr />
+  {% endfor %}
+  </div>
+
+  {% if request.user.is_authenticated  %}
+  <div class="d-flex justify-content-end">
+    <a href="{% url 'community:create' %}"><button class="btn btn-primary">글작성</button></a>
+  </div>
+  {% endif %}
+{% endblock content %}
+
+{% block scripts %}
+  <script>
+    const formTags = document.querySelectorAll('#likes-forms')
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
+    
+    formTags.forEach((formTag) => {
+      formTag.addEventListener('submit', function (event) {
+        event.preventDefault()
+    
+        const reviewId = formTag.dataset.reviewId
+    
+        axios({
+          url: `/community/${reviewId}/like/`,
+          method: 'post',
+          headers: { 'X-CSRFToken': csrftoken }
+        })
+          .then((response) => {
+            const is_liked = response.data.is_liked
+            const likeBtn = document.querySelector(`#like-${reviewId}`)
+    
+            if (is_liked === true) {
+              likeBtn.classList.remove('text-secondary')
+              likeBtn.classList.add('text-danger')
+            } else {
+              likeBtn.classList.remove('text-danger')
+              likeBtn.classList.add('text-secondary')
+            }
+    
+            const likeCnt = document.querySelector(`#likecnt-${reviewId}`)
+            console.log(response.data.is_liked.likes_count)
+            likeCnt.textContent = response.data.likes_count
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+      })
+    })
+  </script>
+{% endblock scripts %}

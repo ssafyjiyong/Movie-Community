@@ -1,139 +1,59 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
-{% load static %}
-
-    <div class="d-flex justify-content-center">
-    <h1 class="fw-bold my-2"> 
-        <img style="margin: 0px 8px; width: 40px; height: 40px;" src="{% static "movie_icon.png" %}" alt="movie_icon">
-        {{ movie.title }}
-        <img style="margin: 0px 8px; width: 40px; height: 40px;" src="{% static "movie_icon.png" %}" alt="movie_icon">
-    </h1>
-    </div>
-
-    <div class="d-flex justify-content-center">
-    {% if movie.image %}
-    <img style="border: 4mm ridge rgba(170, 125, 50, .7); width: 380px; height: 500px;" src="{{ movie.image.url }}" alt="img">
-    {% endif %}
-    </div>
-
-    <div class="d-flex justify-content-end">
-      <small>
-        작성자: <a href="{% url "accounts:profile" movie.user %}">{{ movie.user }}</a>
-      </small>
-    </div>
-
-    <hr class="mt-4">
-    <p> 영화 내용: </p>
-    <p>{{ movie.description }}</p>
-    <hr>
-
-    <p>평점: {{ movie.score }}</p>
-    <p>장르: {{movie.genre}}</p>
-    <hr>
-
-    <form action="{% url "movies:comment_create" movie.pk %}" method='POST'>
-        {% csrf_token %}
-        {{ comment_form }}
-        <input class="btn btn-primary mx-1 mb-1" type="submit" value="댓글달기">
-    </form>
-    <hr>
-
-
-    <div class="list-group">
-      {% for comment in comments %}
-      {% if comment.papa_comment == NULL %}
-      <div class="border border-1 rounded p-2 mb-2">
-          <div class="d-flex w-100 justify-content-between">
-            <h5 class="mb-1">{{ comment.content }}</h5>
-            <small class="text-body-secondary">{{ comment.created_time }}</small>
-          </div>
-
-          <div class="d-flex w-100 justify-content-between">
-          <small class="text-body-secondary">
-            작성자: <a href="{% url "accounts:profile" comment.user %}">{{ comment.user }}</a>
-          </small>
-          
-          <div>
-            {% if request.user == comment.user %}
-          <form style="display: inline;" action="{% url "movies:comment_delete" movie.pk comment.pk %}" method="POST">
-            {% csrf_token %}
-            <input type="submit" class="btn btn-danger btn-sm" value="삭제">
-            </form>
-            {% endif %}
-          </div>
-        </div>
-
-        <hr>
-
-        <form action="{% url "movies:soncomment" movie.pk comment.pk %}" method='POST'>
-          {% csrf_token %}
-          {{ soncomment_form }}
-          <input class="btn btn-secondary mx-1 mb-1 btn-sm" type="submit" value="답글달기">
-        </form>
-      
-        <hr>
-
-        {% for cocomment in comments %}
-        {% if cocomment.papa_comment.pk == comment.pk %}
-        <div class="border border-1 rounded p-2 mx-2 mb-1 bg-light">
-        
-
-        <div class="d-flex w-100 justify-content-between">
-          <h6 class="mb-1">{{ cocomment.content }}</h6>
-          <small class="text-body-secondary">{{ cocomment.created_time }}</small>
-        </div>
-
-        <div class="d-flex w-100 justify-content-between">
-        <small class="text-body-secondary">
-          작성자: <a href="{% url "accounts:profile" cocomment.user %}">{{ cocomment.user }}</a>
-        </small>
-          
-        <div>
-          {% if request.user == cocomment.user %}
-        <form style="display: inline;" action="{% url "movies:cocomment_delete" movie.pk cocomment.pk %}" method="POST">
-          {% csrf_token %}
-          <input type="submit" class="btn btn-danger btn-sm" value="삭제">
-          </form>
-          {% endif %}
-        </div>
-      </div>
-      </div>
-      {% endif %}
-
-      {% endfor %}
-
-
-      </div>
-        
-        {% comment %} 답글이 있는 경우 답글 나타나게 하였습니다 {% endcomment %}
-        
-        
-
-
-
-      {% endif %}
-          
-    {% comment %} </div> {% endcomment %}
-      {% endfor %}
-    </div>
-
-    {% comment %} 아래는 뒤로가기 및 수정/삭제 구현하였습니다 {% endcomment %}
-
-    <hr>
-    <div class="d-flex justify-content-between">
-    <a href="{% url "movies:index" %}" class="btn btn-primary mx-3">뒤로가기</a>
-    
-    <div>
-      {% if request.user == movie.user %}
-      <a href="{% url "movies:update" movie.pk %}" class="btn btn-secondary">수정</a>
-      
-      <form style="display: inline;" action="{% url "movies:delete" movie.pk %}" method="POST">
-        {% csrf_token %}
-        <input type="submit" class="btn btn-danger" value="삭제">
-      </form>
-      {% endif %}
-    </div>
+{% load humanize %}
+  <div class="d-flex justify-content-center">
+    <h1 class="fw-bold my-2">{{ movie.title }}</h1>
   </div>
- <hr>
-  {% endblock content %}
+
+  <div class="d-flex justify-content-center">
+    <h4>[개봉일: {{ movie.release_date }}]</h4>
+  </div>
+
+  <div class="d-flex justify-content-center">
+    {% if movie.poster_path %}
+      <img style="width: 360px; height: 500px;" src="{{ movie.poster_path }}" alt="img" />
+    {% endif %}
+  </div>
+
+  <hr class="mt-4" />
+  <p class="fw-bold">😎장르: 
+    {% for genre_no in movie_genre %}
+    {{ genre_no.name }}
+    {% if not forloop.last %}
+    <span>/</span>
+    {% endif %}
+    {% endfor %}
+  </p>
+  <hr>
+  <p class="fw-bold">🎬영화 내용:</p>
+  {% if movie.overview %}
+  <span>{{movie.overview}}</span>
+{% else %}
+  <span>곧 업데이트 될 예정입니다 :)</span>
+{% endif %}
+  <hr />
+
+  <p class="fw-bold">✨평점: {{ movie.vote_average }} (총 {{ movie.vote_count|intcomma }}개의 평가)</p>
+  <p class="fw-bold">🤩인지도: {{ movie.popularity }} 점 </p>
+
+  
+  <hr />
+  <div class="d-flex justify-content-between">
+    {% if nxt_movie_pk == -99 %}
+    <button class="btn btn-primary mx-3 disabled">이전 영화</button>
+    {% else %}
+    <a href="{% url 'movies:detail' nxt_movie_pk %}" class="btn btn-primary mx-3">이전 영화</a>
+    {% endif %}
+    
+    <a href="{% url 'movies:index' %}" class="btn btn-secondary mx-3">목록으로</a>
+
+    {% if prv_movie_pk == -99 %}
+    <button class="btn btn-primary mx-3 disabled">다음 영화</button>
+    {% else %}
+    <a href="{% url 'movies:detail' prv_movie_pk %}" class="btn btn-primary mx-3">다음 영화</a>
+    {% endif %}
+
+  </div>
+  <hr>
+{% endblock %}

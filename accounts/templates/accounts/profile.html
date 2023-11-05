@@ -1,137 +1,77 @@
-{% load static %}
+{% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html lang="en">
-
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Profile</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@300&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <style>
-
-      .list-group-item-action:hover {
-        background-color: var(--bs-primary); /* Bootstrap primary color variable */
-        color: white;
-      }
-    </style>
-  </head>
-  <body style="font-family: 'Hahmlet', serif;">
-    <div class="container-fluid m-1">
-    
-    <h1>{{ person.username }}님의 프로필</h1>
-
-    <div class="d-flex my-3">
-    <div class="pt-1">
-      <p><a href="{% url "accounts:following" person.pk %}">팔로잉:</a> {{ person.followings.all|length }} / <a href="{% url "accounts:follower" person.pk %}">팔로워:</a> {{ person.followers.all|length }}</p>
-    </div>
-
-    {% if request.user != person %}
-      <div class="mx-3">
-        <form action="{% url "accounts:follow" person.pk %}" method="POST">
-          {% csrf_token %}
-          {% if request.user in person.followers.all %}
-            <button type="submit" class="btn btn-danger btn-sm">팔로우 취소</button>
+{% block content %}
+  <h1>{{ person.username }}님의 프로필 페이지</h1>
+  {% with followings=person.followings.all followers=person.followers.all %}
+    <div class="d-flex">
+      <span class="fs-5">
+        팔로잉 : <span id='followings-count'>{{ person.followings.all|length }}</span> / 
+        팔로워 : <span id='followers-count'>{{ person.followers.all|length }}</span>
+      </span>
+      {% if user != person %}
+        <div class="mx-3">
+          <form id="follow-form" data-user-id="{{ person.pk }}">
+            {% csrf_token %}
+            {% if user in followers %}
+              <button class="btn btn-danger btn-sm" id="followBtn" type="submit">언팔로우</button>
             {% else %}
-            <button type="submit" class="btn btn-primary btn-sm">팔로우</button>
-          {% endif %}
-        </form>
-      </div>
-    {% endif %}
-  </div>
-  <hr>
-
-  <div class="accordion" id="accordionExample">
-  <div class="accordion-item border border-1 rounded p-2">
-    <h2 class="accordion-header">
-      {% comment %} <div class="border border-1 rounded p-2"> {% endcomment %}
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-        <h2>{{ person.username }}님이 등록한 영화(총 {{ person.movie_set.all|length }}개)</h2>
-      </button>
-      {% comment %} </div> {% endcomment %}
-    </h2>
-    <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
-      <div class="accordion-body">
-
-        {% if person.movie_set.all|length != 0 %}
-          <div class="list-group">
-        {% for movie in person.movie_set.all %}
-          <a href="{% url "movies:detail" movie.pk %}" class="list-group-item list-group-item-action fs-5">{{ movie.title }}</a>
-          {% endfor %}
-        </div>
-        {% else %}
-        <p>영화를 등록해보세요!</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
- 
-
-  <hr>
-
-    <div class="accordion-item border border-1 rounded p-2">
-      <h2 class="accordion-header">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-          <h2>{{ person.username }}님이 좋아요를 누른 영화(총 {{ person.like_movies.all|length }}개)</h2>
-        </button>
-      </h2>
-      <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
-        <div class="accordion-body">
-          
-          {% if person.like_movies.all|length != 0 %}
-            <div class="list-group">
-          {% for movie in person.like_movies.all %}
-            <a href="{% url "movies:detail" movie.pk %}" class="list-group-item list-group-item-action fs-5">{{ movie.title }}</a>
-            {% endfor %}
-          </div>
-          {% else %}
-        <p>좋아요를 눌러보세요!</p>
-        {% endif %}
-  
-        </div>
-      </div>
-    </div>
-
-    <hr>
-
-      <div class="accordion-item border border-1 rounded p-2">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-            <h2>{{ person.username }}님이 작성한 댓글(총 {{ person.comment_set.all|length }}개)</h2>
-          </button>
-        </h2>
-        <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
-          <div class="accordion-body">
-            
-            {% if person.comment_set.all|length != 0 %}
-            <div class="list-group">
-            {% for comment in person.comment_set.all %}
-            <p><a style="text-decoration: none;" href="{% url "movies:detail" comment.movie.pk %}">{{ comment.movie.title }}</a> : {{ comment.content }} - {{ comment.created_time }}</p>
-            {% endfor %}
-            </div>
-            {% else %}
-            <p>댓글을 달아보세요!</p>
+              <button class="btn btn-primary btn-sm" id="followBtn" type="submit">팔로우</button>
             {% endif %}
-    
-          </div>
+          </form>
         </div>
-
-      </div>
+      {% endif %}
     </div>
-<hr>
+  {% endwith %}
+{% endblock content %}
 
-    
 
+{% block scripts %}
+<script>
+  // 1. form 요소 선택
+  const formTag = document.querySelector('#follow-form')
+  // 6. csrf value 값 선택
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value
+  
+  // 2. form 요소에 이벤트 리스너 부착
+  formTag.addEventListener('submit', function (event) {
+    // 3. submit 이벤트 기본동작 취소
+    event.preventDefault()
+    // 5. form 요소에 지정한 data 속성 접근하기
+    const userId = formTag.dataset.userId
 
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-  </body>
-</html>
+    // 4. axios로 비동기적으로 팔로우/언팔로우를 요청
+    axios({
+      url: `/accounts/${userId}/follow/`,
+      method: 'post',
+      headers: {'X-CSRFToken': csrftoken},
+    })
+    .then((response) => {
+      console.log(response.data)
+      // 7. Django에서 보낸 follow 여부를 알 수 있는 변수를 저장
+      const isFollowed = response.data.is_followed
+      // 8. 팔로우 버튼 조작
+      const followBtn = document.querySelector('#follow-form > button[type=submit]:nth-child(2)')
+      // 9. 팔로우 버튼 토글
+      if (isFollowed === true) {
+        followBtn.textContent = '언팔로우'
+        followBtn.classList.remove('btn-primary')
+        followBtn.classList.add('btn-danger')
+      } else {
+        followBtn.textContent = '팔로우'
+        followBtn.classList.remove('btn-danger')
+        followBtn.classList.add('btn-primary')
+      }
+
+      // 10. 팔로워 / 팔로잉 수 조작
+      const followingsCountTag = document.querySelector('#followings-count')
+      const followersCountTag = document.querySelector('#followers-count')
+      
+      followingsCountTag.textContent = response.data.followings_count
+      followersCountTag.textContent = response.data.followers_count
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+  })
+</script>
+{% endblock scripts %}

@@ -1,88 +1,171 @@
-{% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@300&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Movie Lobby</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@300&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
-<body style="font-family: 'Hahmlet', serif;">
-    {% comment %} 나중에 여기 있는 스티키 먹히는지 확인하세요~ {% endcomment %}
-    <nav class="navbar navbar-dark bg-dark navbar-expand-md sticky-top">
-        <div class="container-fluid">
+    <style>
+      .carousel-caption {
+        position: absolute;
+        top: 70%;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 30%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+      
+      .carousel-item:hover .carousel-caption {
+        opacity: 1;
+      }
+      
+      #topBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        font-size: 18px;
+        background-color: #555;
+        color: white;
+        border: none;
+        cursor: pointer;
+        opacity: 0.5;
+        transition: opacity 0.3s;
+      }
+      
+      #topBtn:hover {
+        opacity: 1;
+      }
 
-          <div class="d-flex">
-          <a href="{% url "movies:index" %}">
-          <img style=" width: 40px; height: 40px;" src="{% static "popcorn.png" %}" alt="popcorn">
-          </a>
-          <a style="margin: 0px;" class="navbar-brand fs-3" href="{% url "movies:index" %}">무비로비</a>
-          <a href="{% url "movies:index" %}">
-            <img style=" width: 40px; height: 40px;" src="{% static "popcorn.png" %}" alt="popcorn">
-          </a>
+      .scrollable-div {
+        display: flex;
+        overflow-x: auto;
+        gap: 5px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .scrollable-div::-webkit-scrollbar { /* WebKit */
+        display: none;
+      }
+      
+      .card-item {
+        flex: 0 0 auto;
+      }
+      
+    </style>
+  </head>
+  <body style="font-family: 'Hahmlet', serif; background-color: #E0E7E9   ;">
+    <div class="container">
+      <nav>
+        {% if user.is_authenticated %}
+          <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+              <a class="navbar-brand fs-3 fw-bold" href="{% url 'movies:index' %}">🎥무비로비🎥</a>
+              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+              <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'movies:recommended' %}">취향저격</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'movies:index' %}">영화 둘러보기</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'community:index' %}">자유 게시판</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'community:create' %}">글 작성하기</a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </nav>
+
+          <br />
+
+          <div class="d-flex justify-content-between">
+            <h5 style="display: inline-block;">안녕하세요 <a href="{% url 'accounts:profile' user %}">{{ user.username }}</a>님, 환영합니다!</h5>
+            <form style="display: inline-block;" action="{% url 'accounts:logout' %}" method="POST">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">로그아웃</button>
+            </form>
           </div>
 
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          
-          <div class="collapse navbar-collapse  justify-content-between" id="navbarNavAltMarkup">
-            {% if user.is_authenticated %}
-
-              <div class="navbar-nav">
-                <div class="d-flex justify-content-center">
-                  <a class="nav-link" href="{% url "movies:index" %}">HOME</a>
-                </div>
-                <div class="d-flex justify-content-center">
-                  <a class="nav-link" href="{% url "movies:create" %}">영화등록</a>
-                </div>
-              </div>
-              
-              <div class="navbar-nav">
-                <div class="d-flex justify-content-center">
-                  <a class="nav-link" href="{% url "accounts:update" %}">회원정보수정</a>
-                </div>
-                <div class="d-flex justify-content-center">
-                  <a class="nav-link" href="{% url "change_password" user.pk %}">비밀번호변경</a>
-                </div>
-                <div class="d-flex justify-content-center">
-                  <form action="{% url "accounts:logout" %}" method="POST">
-                    {% csrf_token %}
-                    <input style='text-decoration: none;padding-top: 7px;' class="btn btn-link text-white-50" type="submit" value="로그아웃">
-                  </form>
-                </div>
-              </div>
-        
-                {% comment %} <form action="{% url "accounts:delete" %}" method="POST">
-                    {% csrf_token %}
-                    <input type="submit" value="회원탈퇴">
-                </form> {% endcomment %}
-        
-              {% else %}
-              <div class="navbar-nav">
-              <a class="nav-link" href="{% url "movies:index" %}">INDEX</a>
-              <a class="nav-link" href="{% url "accounts:signup" %}">회원가입</a>
-              <a class="nav-link" href="{% url "accounts:login" %}">로그인</a>
-              </div>
-              {% endif %}
-
+          <hr />
+        {% else %}
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+          <div class="container-fluid">
+            <a class="navbar-brand fs-3 fw-bold" href="{% url 'movies:index' %}">🎥무비로비🎥</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+              <ul class="navbar-nav">
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="{% url 'movies:recommended' %}">취향저격</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="{% url 'movies:index' %}">영화 둘러보기</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="{% url 'community:index' %}">자유 게시판</a>
+                </li>
+                <li>
+                  <a class="nav-link active" aria-current="page" href="{% url 'accounts:login' %}">로그인</a>
+                </li>
+                <li>
+                  <a class="nav-link active" aria-current="page" href="{% url 'accounts:signup' %}">회원가입</a>
+                </li>
+              </ul>
+            </div>
           </div>
-        </div>
+        </nav>
+
+
+        {% endif %}
       </nav>
 
-    <div class='px-5'>
-        {% block content %}
-        {% endblock content %}
+      {% block content %}
+      {% endblock content %}
+
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-</body>
+    <button id="topBtn" style="display: none; width: 60px; height: 60px;" class="rounded-circle">TOP</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+      window.onscroll = function () {
+        scrollFunction()
+      }
+      
+      function scrollFunction() {
+        var topBtn = document.getElementById('topBtn')
+        if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+          topBtn.style.display = 'block'
+        } else {
+          topBtn.style.display = 'none'
+        }
+      }
+      
+      document.getElementById('topBtn').addEventListener('click', function () {
+        document.body.scrollTop = 0 // For Safari
+        document.documentElement.scrollTop = 0 // For Chrome, Firefox, IE and Opera
+      })
+    </script>
+
+    {% block scripts %}
+    {% endblock scripts %}
+    
+  </body>
 </html>

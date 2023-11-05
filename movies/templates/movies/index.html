@@ -1,64 +1,113 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
-    <h1 class="fw-bold" >MOVIE LIST</h1>
+  {% load humanize %}
+  <div class="d-flex justify-content-center">
+    <h1>👑박스오피스 TOP 5👑</h1>
+  </div>
 
-    <div class="g-2 row">
-    {% for movie in movies %}
-    <div class="col-12 col-md-6 col-xl-4">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between">
-          <div class="fs-5">
-          {{ movie.title }}
-          </div>
-          
-          {% comment %} 좋아요 구현 {% endcomment %}
-          <div>
-          <span>{{ movie.like_user.count }}</span>
-          <form style="display:inline-block;" action="{% url "movies:likes" movie.pk %}" method="POST">
-            {% csrf_token %}
-            {% if request.user in movie.like_user.all %}
-            <button class="btn btn-link text-danger"><i class="fa fa-heart" aria-hidden="true"></i></button>            
-            {% else %}
-            <button class="btn text-secondary"><i class="fa fa-heart" aria-hidden="true"></i></button>            
-            {% endif %}
-          </form>
+  <div class="d-flex justify-content-center">
+    <div id="carouselExampleAutoplaying" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner" style="width: 300px; height: 500px;">
+        <div class="carousel-item active">
+          <a href="{% url 'movies:detail' movie1.pk %}"><img src="{{ movie1.poster_path }}" class="d-block w-100" style="height: 470px; object-fit: fill;" /></a>
+          <div class="carousel-caption d-none d-md-block">
+            <a style="text-decoration: none; color: white;" href="{% url 'movies:detail' movie1.pk %}">
+              <h5>{{ movie1.title }}</h5>
+              <p>{{ movie1.release_date }}</p>
+            </a>
           </div>
         </div>
-
-        <div class="card-body">
-
-          <div class="d-flex justify-content-center">
-          {% if movie.image %}
-          <a href="{% url "movies:detail" movie.pk %}">
-          <img style="width: 300px; height: 400px;" src="{{ movie.image.url }}" alt="img">
-          </a>
-          {% endif %}
-        </div>
-        <div class="d-flex flex-row-reverse mt-2">
-        <small>작성자: 
-          <a href="{% url "accounts:profile" movie.user %}">{{ movie.user }}</a>
-        </small>
-        </div>
-          <hr>
-
-          <p class="card-text"> {{ movie.description }} </p>
-          <hr>
-          <div class="d-flex justify-content-between">
-          <a href="{% url "movies:detail" movie.pk %}" class="btn btn-primary">상세정보</a>
-
-          {% if request.user == movie.user %}
-          <form style="display: inline;" action="{% url "movies:delete" movie.pk %}" method="POST">
-            {% csrf_token %}
-            <input type="submit" class="btn btn-danger" value="삭제">
-          </form>
-          {% endif %}
+        <div class="carousel-item">
+          <a href="{% url 'movies:detail' movie2.pk %}"><img src="{{ movie2.poster_path }}" class="d-block w-100" style="height: 470px; object-fit: fill;" /></a>
+          <div class="carousel-caption d-none d-md-block">
+            <a style="text-decoration: none; color: white;" href="{% url 'movies:detail' movie2.pk %}">
+              <h5>{{ movie2.title }}</h5>
+              <p>{{ movie2.release_date }}</p>
+            </a>
           </div>
-    
+        </div>
+        <div class="carousel-item">
+          <a href="{% url 'movies:detail' movie3.pk %}"><img src="{{ movie3.poster_path }}" class="d-block w-100" style="height: 470px; object-fit: fill;" /></a>
+          <div class="carousel-caption d-none d-md-block">
+            <a style="text-decoration: none; color: white;" href="{% url 'movies:detail' movie3.pk %}">
+              <h5>{{ movie3.title }}</h5>
+              <p>{{ movie3.release_date }}</p>
+            </a>
+          </div>
+        </div>
+        <div class="carousel-item">
+          <a href="{% url 'movies:detail' movie4.pk %}"><img src="{{ movie4.poster_path }}" class="d-block w-100" style="height: 470px; object-fit: fill;" /></a>
+          <div class="carousel-caption d-none d-md-block">
+            <a style="text-decoration: none; color: white;" href="{% url 'movies:detail' movie4.pk %}">
+              <h5>{{ movie4.title }}</h5>
+              <p>{{ movie4.release_date }}</p>
+            </a>
+          </div>
+        </div>
+        <div class="carousel-item">
+          <a href="{% url 'movies:detail' movie5.pk %}"><img src="{{ movie5.poster_path }}" class="d-block w-100" style="height: 470px; object-fit: fill;" /></a>
+          <div class="carousel-caption d-none d-md-block">
+            <a style="text-decoration: none; color: white;" href="{% url 'movies:detail' movie5.pk %}">
+              <h5>{{ movie5.title }}</h5>
+              <p>{{ movie5.release_date }}</p>
+            </a>
+          </div>
         </div>
       </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+  </div>
+
+  <h1>🎬영화 목록(최신순)</h1>
+  <hr />
+
+  <div class="g-2 row">
+    {% for movie in movies %}
+      <div class="col-12 col-md-6 col-xl-4">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between">
+            <div class="fs-5 d-inline-block text-truncate" style="max-width: 200px;">{{ movie.title }}</div>
+          </div>
+
+          <div class="card-body">
+            <div class="d-flex justify-content-center">
+              <a href="{% url 'movies:detail' movie.pk %}"><img style="width: 300px; height: 400px;" src="{{ movie.poster_path }}" alt="img" /></a>
+            </div>
+            <hr />
+            <p class="card-text">개봉일: {{ movie.release_date }}</p>
+            <p class="card-textd d-inline-block text-truncate" style="max-width: 300px;">
+              😎장르:{% for genre_no in movie.genres.all %}
+                {{ genre_no.name }}
+                {% if not forloop.last %}
+                  <span>/</span>
+                {% endif %}
+              {% endfor %}
+            </p>
+            <p class="card-text">✨평점: {{ movie.vote_average }} (총 {{ movie.vote_count|intcomma }}개의 평가)</p>
+
+            <hr />
+
+            {% if movie.overview %}
+              <span class="d-inline-block text-truncate" style="max-width: 300px;">{{ movie.overview }}</span>
+            {% else %}
+              <span class="d-inline-block text-truncate" style="max-width: 300px;">곧 업데이트 될 예정입니다 :)</span>
+            {% endif %}
+            <hr />
+
+            <div class="d-flex justify-content-end">
+              <a href="{% url 'movies:detail' movie.pk %}" class="btn btn-primary">상세정보</a>
+            </div>
+          </div>
+        </div>
       </div>
     {% endfor %}
   </div>
-
-{% endblock content %}
+{% endblock %}

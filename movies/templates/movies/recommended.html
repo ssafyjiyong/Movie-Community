@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div>
+    <h3 class="mb-3">🤩 어떤 영화를 찾으세요? 🤩</h3>
+    {% for genre in genres %}
+    <input name="genre" type="radio" class="btn-check" id="btn-check-outlined-{{ genre.pk }}" autocomplete="off" value="{{ genre.pk }}">
+    <label class="btn btn-outline-primary m-1" for="btn-check-outlined-{{ genre.pk }}">{{ genre.name }}</label>
+    {% endfor %}
+  </div>
+  <hr />
+
+  <div id="movie-cards" class="scrollable-div">
+    {% for movie in movies %}
+      <div class="card-item">
+        <div class="card" style="width: 250px; height: 560px;">
+          <div class="card-header d-flex justify-content-between">
+            <div class="fs-5 d-inline-block text-truncate" style="max-width: 200px;">{{ movie.title }}</div>
+          </div>
+
+          <div class="card-body">
+            <div class="d-flex justify-content-center">
+              <a href="/movies/{{ movie.pk }}"><img style="width: 150px; height: 200px;" src="{{ movie.poster_path }}" alt="img" /></a>
+            </div>
+            <hr />
+            <p class="card-text">개봉일: {{ movie.release_date }}</p>
+            <p class="card-textd d-inline-block text-truncate" style="max-width: 200px;">
+              😎장르:{% for genre_no in movie.genres.all %}
+                {{ genre_no.name }}
+                {% if not forloop.last %}
+                  <span>/</span>
+                {% endif %}
+              {% endfor %}
+            </p>
+            <p class="card-text text-truncate" style="max-width: 200px;">✨평점: {{ movie.vote_average }}</p>
+
+            <hr />
+
+            {% if movie.overview %}
+              <span class="d-inline-block text-truncate" style="max-width: 200px;">{{ movie.overview }}</span>
+            {% else %}
+              <span class="d-inline-block text-truncate" style="max-width: 200px;">곧 업데이트 될 예정입니다 :)</span>
+            {% endif %}
+            <hr />
+
+            <div class="d-flex justify-content-end">
+              <a href="/movies/{{ movie.pk }}" class="btn btn-primary">상세정보</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  <hr>
+  <div align='center'>
+  <h4>전체 영화 목록을 보고 싶다면 페이지를 새로고침 해보세요!</h4>
+  </div>
+  <hr>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+  const genreChecks = Array.from(document.getElementsByClassName('btn-check'));
+  genreChecks.forEach(genreCheck => {
+    genreCheck.addEventListener('change', function (event) {
+      const genreId = genreCheck.value
+
+      axios({
+        url: `/movies/recommended/${genreId}/`,
+        method: 'get',
+      })
+      .then((response) => {
+        const cardTop = document.querySelector('#movie-cards')
+        cardTop.innerHTML = ''
+        for (let movie of response.data.movies) {
+          const movieCard = document.createElement('div');
+          movieCard.className = 'card-item';
+          movieCard.innerHTML = `
+            <div class="card" style="width: 250px; height: 560px;">
+              <div class="card-header d-flex justify-content-between">
+                <div class="fs-5 d-inline-block text-truncate" style="max-width: 200px;">${movie.title}</div>
+              </div>
+              <div class="card-body">
+                <div class="d-flex justify-content-center">
+                  <a href="/movies/${movie.pk}"><img style="width: 150px; height: 200px;" src="${movie.poster_path}" alt="img" /></a>
+                </div>
+                <hr />
+                <p class="card-text">개봉일: ${movie.release_date}</p>
+                <p class="card-textd d-inline-block text-truncate" style="max-width: 200px;">
+                  😎장르:${movie.genres.join(' / ')}
+                </p>
+                <p class="card-text text-truncate" style="max-width: 200px;">✨평점: ${movie.vote_average}</p>
+                <hr />
+                <span class="d-inline-block text-truncate" style="max-width: 200px;">${movie.overview || '곧 업데이트 될 예정입니다 :)'}</span>
+                <hr />
+                <div class="d-flex justify-content-end">
+                  <a href="/movies/${movie.pk}" class="btn btn-primary">상세정보</a>
+                </div>
+              </div>
+            </div>`;
+          cardTop.appendChild(movieCard);
+        }
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+    })
+  })
+</script>
+
+<script>
+  let scrollableDiv = document.querySelector('.scrollable-div');
+
+  scrollableDiv.addEventListener('wheel', function(event) {
+    event.preventDefault(); 
+    if (event.deltaY > 0) {
+    scrollableDiv.scrollLeft += 100; 
+    } else {
+      scrollableDiv.scrollLeft -= 100; 
+    }
+  });
+</script>
+{% endblock scripts %}

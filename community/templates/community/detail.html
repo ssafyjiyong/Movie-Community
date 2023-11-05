@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="d-flex justify-content-between">
+    <h3>영화: {{ review.movie_title }}</h3>
+    <h5>평점: {{ review.rank }} ✨</h5>
+  </div>
+
+  <h5>< {{ review.title }} ></h5>
+  <hr />
+
+  <h5>평가: {{ review.content }}</h5>
+  <hr />
+
+  <div class="d-flex justify-content-end">
+    <p>작성 시각: {{ review.created_at }}</p>
+  </div>
+
+  <div class="d-flex justify-content-end">
+    <p>수정 시각: {{ review.updated_at }}</p>
+  </div>
+
+  <hr />
+  <h4>댓글 목록</h4>
+  {% if comments|length %}
+    <p>
+      <b>{{ only_comment_cnt }}개의 댓글이 있습니다.</b>
+    </p>
+  {% endif %}
+
+  {% if user.is_authenticated %}
+    <form action="{% url 'community:create_comment' review.pk %}" method="POST">
+      {% csrf_token %}
+      {{ comment_form }}
+      <input class="btn btn-primary mx-1 mb-1 btn-sm" type="submit" value="댓글달기" />
+    </form>
+  {% else %}
+    <a href="{% url 'accounts:login' %}">[댓글을 작성하려면 로그인하세요]</a>
+  {% endif %}
+
+  {% for comment in comments %}
+    {% empty %}
+    <p>
+      <b>댓글이 없어요..</b>
+    </p>
+  {% endfor %}
+  <hr />
+
+  <div class="list-group">
+    {% for comment in comments %}
+      {% if comment.papa_comment == null %}
+        <div class="border border-1 rounded p-2 mb-2">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ comment.content }}</h5>
+            <small class="text-body-secondary">{{ comment.created_time }}</small>
+          </div>
+
+          <div class="d-flex w-100 justify-content-between">
+            <small class="text-body-secondary">작성자: <a href="{% url 'accounts:profile' comment.user %}">{{ comment.user }}</a></small>
+
+            <div>
+              {% if request.user == comment.user %}
+                <form class="comment-form" style="display: inline;" data-review-id="{{ review.pk }}" data-comment-id="{{ comment.pk }}">
+                  {% csrf_token %}
+                  <input type="submit" class="btn btn-danger btn-sm" value="삭제" />
+                </form>
+              {% endif %}
+            </div>
+          </div>
+
+          <hr />
+
+          {% if user.is_authenticated %}
+            <form action="{% url 'community:soncomment_create' review.pk comment.pk %}" method="POST">
+              {% csrf_token %}
+              {{ soncomment_form }}
+              <input class="btn btn-secondary mx-1 mb-1 btn-sm" type="submit" value="답글달기" />
+            </form>
+            <hr />
+          {% endif %}
+
+          {% for soncomment in comments %}
+            {% if soncomment.papa_comment.pk == comment.pk %}
+              <div class="border border-1 rounded p-2 mx-2 mb-1 bg-light">
+                <div class="d-flex w-100 justify-content-between">
+                  <h6 class="mb-1">{{ soncomment.content }}</h6>
+                  <small class="text-body-secondary">{{ soncomment.created_time }}</small>
+                </div>
+
+                <div class="d-flex w-100 justify-content-between">
+                  <small class="text-body-secondary">작성자: <a href="{% url 'accounts:profile' soncomment.user %}">{{ soncomment.user }}</a></small>
+
+                  <div>
+                    {% if request.user == soncomment.user %}
+                      <form class="soncomment-form" style="display: inline;" data-review-id="{{ review.pk }}" data-soncomment-id="{{ soncomment.pk }}">
+                        {% csrf_token %}
+                        <input type="submit" class="btn btn-danger btn-sm" value="삭제" />
+                      </form>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <a href="{% url 'community:index' %}"><button class="btn btn-danger btn-sm my-3">뒤로가기</button></a>
+{% endblock %}
+
+{% block script %}
+  <script>
+  </script>
+{% endblock %}
